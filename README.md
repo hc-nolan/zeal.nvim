@@ -63,11 +63,63 @@ Default options:
 	  layout = "default",
 	},
   },
+  ft_map = {}
 }
 ```
 
 >[!tip]
 > When setting the `toggle_map` option, it is necessary that the mapping also be accessible from within a terminal window
+
+## `ft_map`
+
+The ft_map table allows you to map certain docset names to file types. These will be passed to the `search_ft()` function or `:ZealSearchFt` command (See Usage section)
+
+## Example Configuration
+
+Lazy:
+
+```lua
+{
+  {
+  	dir = "~/Projects/zeal.nvim",
+  	-- "paradoxical-dev/zeal.nvim",
+  	lazy = false,
+  	keys = {
+  	  {
+  	  	"<leader>fd",
+  	  	function()
+  	  		require("zeal").search()
+  	  	end,
+  	  	desc = "Search Zeal docs",
+  	  },
+  	  {
+  	  	"<leader>K",
+  	  	function()
+  	  		require("zeal").search_ft()
+  	  	end,
+  	  	desc = "Search Zeal docs for ft",
+  	  },
+  	},
+  	opts = {
+  	  browser = "w3m",
+  	  use_toggleterm = true,
+  	  toggleterm = {
+  	  	direction = "float",
+  	  },
+  	  picker = {
+  	  	type = "snacks",
+  	  	snacks = {
+  	  	  layout = "select",
+  	  	},
+  	  },
+  	  ft_map = {
+  	  	lua = { "lua_5.1" },
+        js = { "javascript", "node" }
+  	  },
+  	},
+  },
+}
+```
 
 # Usage
 
@@ -81,12 +133,17 @@ Searches accross all available docsets, or a specific docset if supplied as an a
 
 Toggles the last opened zeal terminal
 
+### `:ZealSearchFt`
+
+Searches docsets specified in the `ft_map` confugration option
+
 ## Functions
 
 ### `require("zeal").search(docset)`
 
 Same as the `:Zeal` command
 
-## Advanced Usage
+### `require("zeal").search_ft()`
 
-TODO
+Same as `:ZealSearchFt`
+

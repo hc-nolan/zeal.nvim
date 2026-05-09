@@ -84,4 +84,8 @@ vim.api.nvim_create_user_command("ZealToggle", function()
 	require("zeal.browser").toggle()
 end, { desc = "Toggle Zeal term" })
 
+vim.api.nvim_create_user_command("ZealSearchFt", function()
+	require("zeal").search_ft()
+end, { desc = "Search Zeal docsets for filetype" })
+
 return M
