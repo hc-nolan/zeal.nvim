@@ -70,6 +70,7 @@ function M.pick_entry_for_ft(docset_names, ft, cfg)
 				browser.open(choice, cfg)
 			end
 		end)
+		return
 	end
 
 	local picker_cfg = cfg.picker.snacks
