@@ -13,7 +13,9 @@ function M.open(entry, cfg)
 
 	if not cfg.use_toggleterm then
 		vim.cmd(cfg.split)
-		vim.cmd("term " .. cfg.browser .. " '" .. entry.path .. "'")
+		local buf = vim.api.nvim_create_buf(false, true)
+		vim.api.nvim_set_current_buf(buf)
+		vim.fn.termopen({ cfg.browser, entry.path })
 		vim.cmd("startinsert")
 		return
 	end

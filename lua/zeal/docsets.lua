@@ -57,13 +57,13 @@ function M.entries(docset)
 			-- print("bytes:", path:byte(1), path:byte(2), path:byte(3))
 			-- local filepath = path:match("^([^#]+)")
 
-			local stripped = path:match(">([^>]+)$") or path
-			stripped = path:match("^.*>(.+)$") or path
-			local filepath = stripped:match("^([^#]+)")
+			-- local stripped = path:match(">([^>]+)$") or path
+			local stripped = path:match("^.*>(.+)$") or path
+			-- local filepath = stripped:match("^([^#]+)")
 
 			table.insert(entries, {
 				display = entry_name,
-				path = docset.path .. "/Contents/Resources/Documents/" .. filepath,
+				path = docset.path .. "/Contents/Resources/Documents/" .. stripped,
 			})
 		end
 	end
