@@ -61,4 +61,26 @@ function M.entries(docset)
 	return entries
 end
 
+---@param docset_names table list of docset name strings
+---@param cfg table
+---@return table
+function M.entries_for_ft(docset_names, cfg)
+	local entries = {}
+	for _, name in ipairs(docset_names) do
+		local docset = M.find(name, cfg)
+
+		if docset then
+			for _, entry in ipairs(M.entries(docset)) do
+				table.insert(entries, {
+					display = "[" .. docset.name .. "] " .. entry.display,
+					path = entry.path,
+				})
+			end
+		else
+			vim.notify("zeal.nvim: ft_map docset not found: " .. name, vim.log.levels.WARN)
+		end
+	end
+	return entries
+end
+
 return M

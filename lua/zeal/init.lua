@@ -18,13 +18,12 @@ M.default_config = {
 			layout = "default",
 		},
 	},
-	ft_map = { -- TODO: add multi search by ft?
-		js = "javascript",
-	},
+	ft_map = {},
 }
 
 function M.setup(opts)
 	M.config = vim.tbl_deep_extend("force", M.default_config, opts or {})
+
 	if M.config.use_toggleterm then
 		vim.api.nvim_set_keymap(
 			"n",
@@ -55,6 +54,23 @@ function M.search(docset_name)
 	else
 		vim.notify("zeal.nvim: no docset found matching '" .. docset_name .. "'", vim.log.levels.WARN)
 	end
+end
+
+function M.search_ft()
+	if not M.config.ft_map then
+		vim.notify("zeal.nvim: ft_map not configured", vim.log.levels.WARN)
+		return
+	end
+
+	local ft = vim.bo.filetype
+	local mapped = M.config.ft_map[ft]
+	if not mapped then
+		vim.notify("zeal.nvim: no docsets mapped for filetype: " .. ft, vim.log.levels.WARN)
+		return
+	end
+
+	local picker = require("zeal.picker")
+	picker.pick_entry_for_ft(mapped, ft, M.config)
 end
 
 vim.api.nvim_create_user_command("Zeal", function(opts)

@@ -50,6 +50,53 @@ function M.pick_entry(docset, cfg)
 	})
 end
 
+---@param docset_names table list of docset name strings
+---@param ft string
+---@param cfg table
+function M.pick_entry_for_ft(docset_names, ft, cfg)
+	local entries = docsets.entries_for_ft(docset_names, cfg)
+	if #entries == 0 then
+		vim.notify("zeal.nvim: no entries found for filetype " .. ft, vim.log.levels.WARN)
+	end
+
+	if cfg.picker.type == "default" then
+		vim.ui.select(entries, {
+			prompt = "Zeal [" .. ft .. "]",
+			format_item = function(e)
+				return e.display
+			end,
+		}, function(choice)
+			if choice then
+				browser.open(choice, cfg)
+			end
+		end)
+	end
+
+	local picker_cfg = cfg.picker.snacks
+	local snacks = require("snacks")
+	local items = {}
+
+	for _, e in ipairs(entries) do
+		table.insert(items, { text = e.display, path = e.path })
+	end
+
+	snacks.picker({
+		items = items,
+		format = function(e)
+			return {
+				{ e.text, "SnacksPickerFile" },
+			}
+		end,
+		layout = picker_cfg.layout,
+		title = "  Zeal [" .. ft .. "]",
+		confirm = function(picker, choice)
+			picker:close()
+			browser.open(choice, cfg)
+		end,
+		preview = "none",
+	})
+end
+
 ---@param cfg table
 function M.pick_docset(cfg)
 	local all = docsets.list(cfg)
