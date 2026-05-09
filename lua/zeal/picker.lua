@@ -11,16 +11,43 @@ function M.pick_entry(docset, cfg)
 		return
 	end
 
-	vim.ui.select(entries, {
-		prompt = "Zeal [" .. docset.name .. "]",
-		format_item = function(e)
-			return e.display
+	if cfg.picker.type == "default" then
+		vim.ui.select(entries, {
+			prompt = "Zeal [" .. docset.name .. "]",
+			format_item = function(e)
+				return e.display
+			end,
+		}, function(choice)
+			if choice then
+				browser.open(choice, cfg)
+			end
+		end)
+		return
+	end
+
+	local picker_cfg = cfg.picker.snacks
+	local snacks = require("snacks")
+	local items = {}
+
+	for _, e in ipairs(entries) do
+		table.insert(items, { text = e.display, path = e.path })
+	end
+
+	snacks.picker({
+		items = items,
+		format = function(e)
+			return {
+				{ e.text, "SnacksPickerFile" },
+			}
 		end,
-	}, function(choice)
-		if choice then
+		layout = picker_cfg.layout,
+		title = " " .. docset.name .. " Entries",
+		confirm = function(picker, choice)
+			picker:close()
 			browser.open(choice, cfg)
-		end
-	end)
+		end,
+		preview = "none",
+	})
 end
 
 ---@param cfg table
@@ -36,16 +63,43 @@ function M.pick_docset(cfg)
 		return
 	end
 
-	vim.ui.select(all, {
-		prompt = "Zeal docsets",
-		format_item = function(d)
-			return d.name
+	if cfg.picker.type == "default" then
+		vim.ui.select(all, {
+			prompt = "Zeal docsets",
+			format_item = function(d)
+				return d.name
+			end,
+		}, function(choice)
+			if choice then
+				M.pick_entry(choice, cfg)
+			end
+		end)
+		return
+	end
+
+	local picker_cfg = cfg.picker.snacks
+	local snacks = require("snacks")
+	local items = {}
+
+	for _, d in ipairs(all) do
+		table.insert(items, { text = d.name, name = d.name, path = d.path, file = d.path })
+	end
+
+	snacks.picker({
+		items = items,
+		format = function(d)
+			return {
+				{ d.text, "SnacksPickerFile" },
+			}
 		end,
-	}, function(choice)
-		if choice then
+		layout = picker_cfg.layout,
+		title = "  Zeal Docsets",
+		confirm = function(picker, choice)
+			picker:close()
 			M.pick_entry(choice, cfg)
-		end
-	end)
+		end,
+		preview = "none",
+	})
 end
 
 return M

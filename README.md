@@ -52,10 +52,22 @@ Default options:
   -- see https://github.com/akinsho/toggleterm.nvim/tree/main
   toggleterm = {
   	direction = "vertical",
-  	split_size = vim.o.columns * 0.5, -- size when direction != float
+  	split_size = vim.o.columns * 0.5, -- when direction != float
+    toggle_map = "<M-h>" -- toggle last opened zeal terem
+  },
+  picker = {
+	type = "default", -- default | snacks
+    -- snacks picker specific options.
+    -- see https://github.com/folke/snacks.nvim/blob/main/docs/picker.md
+	snacks = {
+	  layout = "default",
+	},
   },
 }
 ```
+
+>[!tip]
+> When setting the `toggle_map` option, it is necessary that the mapping also be accessible from within a terminal window
 
 # Usage
 
@@ -64,6 +76,10 @@ Default options:
 ### `:Zeal`
 
 Searches accross all available docsets, or a specific docset if supplied as an argument.
+
+### `:ZealToggle`
+
+Toggles the last opened zeal terminal
 
 ## Functions
 

@@ -10,7 +10,13 @@ M.default_config = {
 	toggleterm = {
 		direction = "vertical",
 		split_size = vim.o.columns * 0.5, -- size when direction != float
-		toggle_map = "<M-h>", -- TODO: add toggle map for tt
+		toggle_map = "<M-h>", -- toggle last opened zeal term
+	},
+	picker = {
+		type = "default",
+		snacks = {
+			layout = "default",
+		},
 	},
 	ft_map = { -- TODO: add multi search by ft?
 		js = "javascript",

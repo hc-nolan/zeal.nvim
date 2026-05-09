@@ -23,6 +23,21 @@ function M.open(entry, cfg)
 		cmd = cfg.browser .. " '" .. entry.path .. "'",
 		close_on_exit = true,
 		direction = cfg.toggleterm.direction,
+		display_name = "Zeal Term",
+		on_stderr = function(self, job, err, name)
+			local e = ""
+			for line in pairs(err) do
+				e = e .. "\n" .. line
+			end
+			local log = "zeal.nvim: Error in terminal. Status: \n"
+				.. "job: "
+				.. job
+				.. "\nerror: "
+				.. e
+				.. "\nname: "
+				.. name
+			vim.notify(log, vim.log.levels.ERROR)
+		end,
 		on_exit = function()
 			M.current = false
 			M.term = nil
