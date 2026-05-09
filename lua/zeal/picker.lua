@@ -57,6 +57,7 @@ function M.pick_entry_for_ft(docset_names, ft, cfg)
 	local entries = docsets.entries_for_ft(docset_names, cfg)
 	if #entries == 0 then
 		vim.notify("zeal.nvim: no entries found for filetype " .. ft, vim.log.levels.WARN)
+		return
 	end
 
 	if cfg.picker.type == "default" then
