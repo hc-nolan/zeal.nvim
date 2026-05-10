@@ -64,7 +64,8 @@ local function download_lang(cfg, language)
 				return
 			end
 
-			local dest = docsets_path .. "/" .. language .. ".docset"
+			local docset_name = src:match("([^/]+)$")
+			local dest = docsets_path .. "/" .. docset_name
 			vim.schedule(function()
 				-- remove existing docset so cp -r doesn't nest inside it
 				if vim.uv.fs_stat(dest) then
