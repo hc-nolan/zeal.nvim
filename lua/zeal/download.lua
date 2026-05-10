@@ -15,20 +15,27 @@ local function download_lang(cfg, language)
 	local tarball = tmp .. ".tgz"
 	vim.fn.mkdir(tmp, "p")
 
+	local function cleanup()
+		vim.uv.fs_unlink(tarball)
+		vim.fn.delete(tmp, "rf")
+	end
+
 	local cmd = { "curl", "-fsSL", "--connect-timeout", "10", "--retry", "2", "-o", tarball, url }
 	vim.system(cmd, {}, function(result)
 		if result.code ~= 0 then
 			vim.schedule(function()
 				vim.notify("zeal.nvim: curl failed: " .. result.stderr, vim.log.levels.ERROR)
+				cleanup()
 			end)
 			return
 		end
 
 		local tar_cmd = { "tar", "-xzf", tarball, "-C", tmp }
-		vim.system(tar_cmd, {}, function(result)
-			if result.code ~= 0 then
+		vim.system(tar_cmd, {}, function(tar_result)
+			if tar_result.code ~= 0 then
 				vim.schedule(function()
-					vim.notify("zeal.nvim: tar failed: " .. result.stderr, vim.log.levels.ERROR)
+					vim.notify("zeal.nvim: tar failed: " .. tar_result.stderr, vim.log.levels.ERROR)
+					cleanup()
 				end)
 				return
 			end
@@ -39,7 +46,9 @@ local function download_lang(cfg, language)
 			if handle then
 				while true do
 					local name, type = vim.uv.fs_scandir_next(handle)
-					if not name then break end
+					if not name then
+						break
+					end
 					if type == "directory" and name:match("%.docset$") then
 						src = tmp .. "/" .. name
 						break
@@ -50,6 +59,7 @@ local function download_lang(cfg, language)
 			if not src then
 				vim.schedule(function()
 					vim.notify("zeal.nvim: no .docset found in archive for " .. language, vim.log.levels.ERROR)
+					cleanup()
 				end)
 				return
 			end
@@ -59,10 +69,11 @@ local function download_lang(cfg, language)
 				vim.schedule(function()
 					if mv_result.code ~= 0 then
 						vim.notify("zeal.nvim: move failed: " .. mv_result.stderr, vim.log.levels.ERROR)
+						cleanup()
 						return
 					end
 					vim.notify("zeal.nvim: installed " .. language, vim.log.levels.INFO)
-					vim.uv.fs_unlink(tarball)
+					cleanup()
 				end)
 			end)
 		end)
@@ -75,8 +86,14 @@ function M.fetch_index(cfg)
 	local cache_ttl = 24 * 60 * 60 -- 24 hours
 
 	local function pick_lang()
-		local index = table.concat(vim.fn.readfile(cache_path), "\n")
-		local index_parsed = vim.json.decode(index)
+		local ok, index_parsed = pcall(function()
+			local raw = table.concat(vim.fn.readfile(cache_path), "\n")
+			return vim.json.decode(raw)
+		end)
+		if not ok then
+			vim.notify("zeal.nvim: parsing docset failed: " .. index_parsed, vim.log.levels.ERROR)
+			return
+		end
 		require("zeal.picker").pick_download(index_parsed, cfg, download_lang)
 	end
 
@@ -91,7 +108,7 @@ function M.fetch_index(cfg)
 	end
 	vim.fn.mkdir(cache_dir, "p")
 
-	local cmd = { "curl", "-fsSL", index_url, "-o", cache_path }
+	local cmd = { "curl", "-fsSL", "--connect-timeout", "10", "--retry", "2", "-o", cache_path, index_url }
 	vim.system(cmd, {}, function(result)
 		if result.code ~= 0 then
 			vim.schedule(function()
