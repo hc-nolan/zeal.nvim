@@ -56,7 +56,7 @@ function M.search(docset_name)
 	end
 end
 
-function M.search_ft()
+function M.search_ft(query)
 	if not M.config.ft_map then
 		vim.notify("zeal.nvim: ft_map not configured", vim.log.levels.WARN)
 		return
@@ -70,7 +70,7 @@ function M.search_ft()
 	end
 
 	local picker = require("zeal.picker")
-	picker.pick_entry_for_ft(mapped, ft, M.config)
+	picker.pick_entry_for_ft(mapped, ft, M.config, query)
 end
 
 vim.api.nvim_create_user_command("Zeal", function(opts)
@@ -80,13 +80,17 @@ end, {
 	desc = "Search Zeal docsets",
 })
 
+vim.api.nvim_create_user_command("ZealSearchFt", function(opts)
+  local query = opts.args ~= "" and opts.args or nil
+	require("zeal").search_ft(query)
+end, {
+  nargs = "?",
+  desc = "Search Zeal docsets for filetype"
+})
+
 vim.api.nvim_create_user_command("ZealToggle", function()
 	require("zeal.browser").toggle()
 end, { desc = "Toggle Zeal term" })
-
-vim.api.nvim_create_user_command("ZealSearchFt", function()
-	require("zeal").search_ft()
-end, { desc = "Search Zeal docsets for filetype" })
 
 vim.api.nvim_create_user_command("ZealDownload", function()
 	require("zeal.download").download(M.config)

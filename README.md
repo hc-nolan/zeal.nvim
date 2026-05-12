@@ -95,9 +95,10 @@ Lazy:
   	  {
   	  	"<leader>K",
   	  	function()
-  	  		require("zeal").search_ft()
+            local query = vim.fn.expand("<cword>")
+  	  		require("zeal").search_ft(query)
   	  	end,
-  	  	desc = "Search Zeal docs for ft",
+  	  	desc = "Search Zeal docs by ft for current word",
   	  },
   	},
   	opts = {
@@ -135,7 +136,7 @@ Toggles the last opened zeal terminal
 
 ### `:ZealSearchFt`
 
-Searches docsets specified in the `ft_map` configuration option
+Searches docsets specified in the `ft_map` configuration option. Takes an optional `query` argument to pre filter the selection.
 
 ### `:ZealDownload`
 
@@ -150,7 +151,7 @@ Opens a picker to browse and download docsets from the [Zeal docset registry](ht
 
 Same as the `:Zeal` command
 
-### `require("zeal").search_ft()`
+### `require("zeal").search_ft(query)`
 
 Same as `:ZealSearchFt`
 

@@ -5,13 +5,22 @@ local M = {}
 ---@param entries table
 ---@param title string
 ---@param cfg table
-local function entry_picker(entries, title, cfg)
+---@param query? string
+local function entry_picker(entries, title, cfg, query)
   if #entries == 0 then
     vim.notify("zeal.nvim: no entries found for " .. title, vim.log.levels.WARN)
   end
 
   if cfg.picker.type == "default" then
-    vim.ui.select(entries, {
+    -- pre filter options since vim.ui.select doesn't support patterns
+    local filtered = entries
+    if query and query ~= "" then
+      filtered = vim.tbl_filter(function(e)
+        return e.display:lower():find(query:lower(), 1, true) ~= nil
+      end, entries)
+    end
+
+    vim.ui.select(filtered, {
       prompt = "Zeal [" .. title .. "]:",
       format_item = function(e)
         return e.display
@@ -41,6 +50,7 @@ local function entry_picker(entries, title, cfg)
     end,
     layout = picker_cfg.layout,
     title = "  Zeal [" .. title .. "]",
+    pattern = query or "",
     confirm = function(picker, choice)
       picker:close()
       browser.open(choice, cfg)
@@ -52,14 +62,16 @@ end
 ---@param docset table
 ---@param cfg table
 function M.pick_entry(docset, cfg)
-  entry_picker(docsets.entries(docset), docset.name, cfg)
+  entry_picker(docsets.entries(docset), docset.name, cfg, query)
 end
 
 ---@param docset_names table[]
 ---@param ft string
 ---@param cfg table
-function M.pick_entry_for_ft(docset_names, ft, cfg)
-  entry_picker(docsets.entries_for_ft(docset_names, cfg), ft, cfg)
+---@param query? string
+function M.pick_entry_for_ft(docset_names, ft, cfg, query)
+  local names = docsets.entries_for_ft(docset_names, cfg)
+  entry_picker(names, ft, cfg, query)
 end
 
 ---@param cfg table
