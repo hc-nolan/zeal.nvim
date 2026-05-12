@@ -70,7 +70,7 @@ local function ensure_index(db)
 			.. " FROM ztoken"
 			.. " INNER JOIN ztokenmetainformation ON ztoken.zmetainformation = ztokenmetainformation.z_pk"
 			.. " INNER JOIN zfilepath ON ztokenmetainformation.zfile = zfilepath.z_pk"
-			.. ' INNER JOIN ztokentype ON ztoken.ztokentype = ztokentype.z_pk"',
+			.. " INNER JOIN ztokentype ON ztoken.ztokentype = ztokentype.z_pk",
 	}, { text = true }):wait()
 
 	if create_res.code ~= 0 then
