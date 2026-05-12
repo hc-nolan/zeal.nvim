@@ -50,48 +50,70 @@ function M.entries(docset)
 	-- are missing the searchIndex table
 	-- SQL below is based on what Zeal does, see
 	-- https://github.com/zealdocs/zeal/blob/main/src/libs/registry/docset.cpp#L621
-	local has_index = vim.fn.systemlist(
-		string.format(
-			"sqlite3 '%s' \"SELECT name FROM sqlite_master WHERE type IN ('table','view') AND name='searchIndex'\"",
-			db
-		)
-	)
-	if #has_index == 0 then
-		vim.fn.systemlist(
-			string.format(
-				"sqlite3 '%s' \"CREATE VIEW IF NOT EXISTS searchIndex AS"
+	local has_index = vim.system({
+		"sqlite3",
+		"-json",
+		db,
+		"SELECT name FROM sqlite_master WHERE type IN ('table','view') AND name='searchIndex'",
+	}, { text = true }):wait()
+
+	if has_index.code == 0 then
+		local rows = vim.json.decode(has_index.stdout, { luanil = { object = true, array = true } })
+		if not rows or #rows == 0 then
+			vim.system({
+				"sqlite3",
+				db,
+				"CREATE VIEW IF NOT EXISTS searchIndex AS"
 					.. " SELECT ztokenname AS name, ztypename AS type, zpath AS path, zanchor AS fragment"
 					.. " FROM ztoken"
 					.. " INNER JOIN ztokenmetainformation ON ztoken.zmetainformation = ztokenmetainformation.z_pk"
 					.. " INNER JOIN zfilepath ON ztokenmetainformation.zfile = zfilepath.z_pk"
 					.. ' INNER JOIN ztokentype ON ztoken.ztokentype = ztokentype.z_pk"',
-				db
-			)
-		)
+			}, { text = true }):wait()
+		end
 	end
 
-	local raw = vim.fn.systemlist(
-		string.format("sqlite3 '%s' \"SELECT name, path, fragment FROM searchIndex ORDER BY name\"", db)
-	)
-	local entries = {}
+	-- local raw = vim.fn.systemlist(
+	-- 	string.format("sqlite3 '%s' \"SELECT name, path, fragment FROM searchIndex ORDER BY name\"", db)
+	-- )
 
-	for _, line in ipairs(raw) do
-		local entry_name, path, fragment = line:match("^(.-)|(.-)|(.*)$")
-		if entry_name and path then
-			-- strip path metadata?
-			-- local stripped = path:match(">([^>]+)$") or path
-			local stripped = path:match("^.*>(.+)$") or path
-			-- local filepath = stripped:match("^([^#]+)")
-			local full_path = docset.path .. "/Contents/Resources/Documents/" .. stripped
-			if fragment and fragment ~= "" then
-				full_path = full_path .. "#" .. fragment
-			end
+	local result = vim.system({
+		"sqlite3",
+		"-json",
+		db,
+		"SELECT name, path, fragment FROM searchIndex ORDER BY name",
+	}, { text = true }):wait()
 
-			table.insert(entries, {
-				display = entry_name,
-				path = full_path,
-			})
+	if result.code ~= 0 then
+		-- add fallback for docsets wo fragment
+		result = vim.system({
+			"sqlite3",
+			"-json",
+			db,
+			"SELECT name, path FROM searchIndex ORDER BY name",
+		}, { text = true }):wait()
+
+		if result.code ~= 0 then
+			vim.notify("zeal.nvim: sqlite error: " .. result.stderr, vim.log.levels.ERROR)
+			return {}
 		end
+	end
+
+	local entries = {}
+	local rows = vim.json.decode(result.stdout, { luanil = { object = true, array = true } })
+
+	for _, row in ipairs(rows) do
+		-- strip path metadata?
+		local stripped = row.path:match("^.*>(.+)$") or row.path
+		local full_path = docset.path .. "/Contents/Resources/Documents/" .. stripped
+		if row.fragment and row.fragment ~= "" then
+			full_path = full_path .. "#" .. row.fragment
+		end
+
+		table.insert(entries, {
+			display = row.name,
+			path = full_path,
+		})
 	end
 	return entries
 end
