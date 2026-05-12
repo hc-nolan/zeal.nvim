@@ -144,11 +144,21 @@ function M.download(cfg)
 	end
 	vim.fn.mkdir(cache_dir, "p")
 
-	local cmd = { "curl", "-fsSL", "--connect-timeout", "10", "--retry", "2", "-o", cache_path, index_url }
+	-- use temp file initially, move to cache_path if download succeeds
+	local cache_tmp = cache_path .. ".tmp"
+	local cmd = { "curl", "-fsSL", "--connect-timeout", "10", "--retry", "2", "-o", cache_tmp, index_url }
 	vim.system(cmd, {}, function(result)
 		if result.code ~= 0 then
+			vim.uv.fs_unlink(cache_tmp)
 			vim.schedule(function()
 				vim.notify("zeal.nvim: curl failed: " .. result.stderr, vim.log.levels.ERROR)
+			end)
+			return
+		end
+		local ok, err = vim.uv.fs_rename(cache_tmp, cache_path)
+		if not ok then
+			vim.schedule(function()
+				vim.notify("zeal.nvim: failed to move cache: " .. err, vim.log.levels.ERROR)
 			end)
 			return
 		end
