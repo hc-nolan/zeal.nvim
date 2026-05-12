@@ -1,6 +1,6 @@
 # zeal.nvim
 
-Query and open Zeal docsets without leaving Neovim.
+Query and open [Zeal](https://zealdocs.org/) docsets without leaving Neovim.
 
 ![Search](https://i.imgur.com/NMgdSOh.png)
 ![Term](https://i.imgur.com/y2STYrK.png)
@@ -9,7 +9,6 @@ Query and open Zeal docsets without leaving Neovim.
 
 - sqlite3
 - curl
-- [Zeal](https://zealdocs.org/)
 - lynx, w3m or any other terminal browser
 
 ## Optional Dependencies
