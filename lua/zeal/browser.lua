@@ -13,15 +13,20 @@ function M.open(entry, cfg)
 		return
 	end
 
+	local cmd = {}
+	vim.list_extend(cmd, type(cfg.browser) == 'string' and { cfg.browser } or cfg.browser)
+	vim.list_extend(cmd, { entry.path })
+
 	if not cfg.use_toggleterm then
 		vim.cmd(cfg.split)
 		local buf = vim.api.nvim_create_buf(false, true)
 		vim.api.nvim_buf_set_option(buf, "filetype", ZEAL_FILETYPE)
 		vim.api.nvim_set_current_buf(buf)
+
 		if vim.fn.has('nvim-0.11') == 1 then
-			vim.fn.jobstart({ cfg.browser, entry.path }, { term = true })
+			vim.fn.jobstart(cmd, { term = true })
 		else
-			vim.fn.termopen({ cfg.browser, entry.path })
+			vim.fn.termopen(cmd)
 		end
 
 		-- automatically close the terminal window unless there was an error
@@ -41,7 +46,7 @@ function M.open(entry, cfg)
 
 	local Term = require("toggleterm.terminal").Terminal
 	local t = Term:new({
-		cmd = cfg.browser .. " '" .. entry.path .. "'",
+		cmd = table.concat(vim.tbl_map(vim.fn.shellescape, cmd), " "),
 		close_on_exit = true,
 		direction = cfg.toggleterm.direction,
 		display_name = "Zeal Term",
