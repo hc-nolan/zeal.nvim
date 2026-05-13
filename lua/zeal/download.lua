@@ -151,7 +151,7 @@ local function fetch_index(on_complete)
 			end)
 			return
 		end
-		on_complete()
+		vim.schedule(on_complete)
 	end)
 end
 
