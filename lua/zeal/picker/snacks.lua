@@ -1,5 +1,4 @@
 local browser = require("zeal.browser")
-local cfg = require("zeal").config
 local M = {}
 
 ---@param entries table
@@ -7,6 +6,7 @@ local M = {}
 ---@param query? string
 function M.entry_picker(entries, title, query)
 	local snacks = require("snacks")
+	local cfg = require("zeal").config
 	local picker_cfg = cfg.picker.snacks
 	local items = {}
 
@@ -35,6 +35,7 @@ end
 ---@param docsets table
 ---@param on_choice function  Function to call upon selection
 function M.pick_docsets(docsets, on_choice)
+	local cfg = require("zeal").config
 	local picker_cfg = cfg.picker.snacks
 	local snacks = require("snacks")
 	local items = {}
@@ -63,6 +64,7 @@ end
 ---@param languages table  Table of languages read from Zeal docset index
 ---@param callback function|nil  Optional callback function
 function M.pick_download(languages, callback)
+	local cfg = require("zeal").config
 	local picker_cfg = cfg.picker.snacks
 	local snacks = require("snacks")
 	local items = {}

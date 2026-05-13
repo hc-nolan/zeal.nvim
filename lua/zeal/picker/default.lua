@@ -1,11 +1,11 @@
 local browser = require("zeal.browser")
-local cfg = require("zeal").config
 local M = {}
 
 ---@param entries table
 ---@param title string
 ---@param query? string
 function M.entry_picker(entries, title, query)
+	local cfg = require("zeal").config
 	-- pre filter options since vim.ui.select doesn't support patterns
 	local filtered = entries
 	if query and query ~= "" then

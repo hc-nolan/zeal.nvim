@@ -1,12 +1,11 @@
 local docsets = require("zeal.docsets")
-local cfg = require("zeal").config
-local active_picker = cfg.picker.type
 local M = {}
 
 ---@param entries table
 ---@param title string
 ---@param query? string
 local function entry_picker(entries, title, query)
+	local active_picker = require("zeal").config.picker.type
 	if #entries == 0 then
 		vim.notify("zeal.nvim: no entries found for " .. title, vim.log.levels.WARN)
 	end
@@ -29,6 +28,7 @@ end
 ---@param ft string
 ---@param query? string
 function M.pick_entry_for_ft(docset_names, ft, query)
+	local cfg = require("zeal").config
 	local names = docsets.entries_for_ft(docset_names, cfg)
 	entry_picker(names, ft, query)
 end
@@ -36,6 +36,8 @@ end
 --- Opens a picker of installed docsets and calls on_choice upon selection
 ---@param on_choice function  Function to call upon selection
 local function pick_docsets(on_choice)
+	local cfg = require("zeal").config
+	local active_picker = cfg.picker.type
 	local all = docsets.list(cfg)
 
 	if #all == 0 then
@@ -64,6 +66,7 @@ end
 ---@param languages table  Table of languages read from Zeal docset index
 ---@param callback function|nil  Optional callback function
 function M.pick_download(languages, callback)
+	local active_picker = require("zeal").config.picker.type
 	if active_picker == "default" then
 		require("picker.default").pick_download(languages, callback)
 		return
@@ -92,6 +95,7 @@ function M.pick_removal(callback)
 end
 
 function M.pick_manager()
+	local active_picker = require("zeal").config.picker.type
 	if active_picker == "default" then
 		require("picker.default").pick_manager()
 		return
