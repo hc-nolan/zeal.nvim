@@ -2,7 +2,7 @@ local M = {}
 
 M.default_config = {
 	docsets_path = vim.fn.expand("~/.local/share/Zeal/Zeal/docsets"), -- zeal docset locations
-	browser = { "w3m", '-o', 'display_image=FALSE' }, -- can be any terminal browser
+	browser = { "w3m", "-o", "display_image=FALSE" }, -- can be any terminal browser
 	split = "vsplit", -- used when use_toggleterm = false
 	use_toggleterm = false,
 	-- toggleterm specific options
@@ -16,6 +16,11 @@ M.default_config = {
 		type = "default",
 		snacks = {
 			layout = "default",
+			manager_keymaps = {
+				toggle = "<C-t>",
+				select = "<Tab>",
+				confirm = "<CR>",
+			},
 		},
 	},
 	ft_map = {},
@@ -44,13 +49,13 @@ function M.search(docset_name)
 	local picker = require("zeal.picker")
 
 	if not docset_name then
-		picker.pick_docset(M.config)
+		picker.pick_docset()
 		return
 	end
 
 	local docset = require("zeal.docsets").find(docset_name, M.config)
 	if docset then
-		picker.pick_entry(docset, M.config)
+		picker.pick_entry(docset)
 	else
 		vim.notify("zeal.nvim: no docset found matching '" .. docset_name .. "'", vim.log.levels.WARN)
 	end
@@ -70,7 +75,30 @@ function M.search_ft(query)
 	end
 
 	local picker = require("zeal.picker")
-	picker.pick_entry_for_ft(mapped, ft, M.config, query)
+	picker.pick_entry_for_ft(mapped, ft, query)
+end
+
+--- Download a docset
+---@param callback function?
+function M.download(callback)
+	local picker = require("zeal.picker")
+	require("zeal.download").get_index(function(languages)
+		picker.pick_download(languages, callback)
+	end)
+end
+
+--- Remove a docset
+---@param callback function?
+function M.remove(callback)
+	local picker = require("zeal.picker")
+	picker.pick_removal(callback)
+end
+
+function M.manager()
+	local picker = require("zeal.picker")
+	require("zeal.download").get_index(function(languages)
+		picker.pick_manager(languages)
+	end)
 end
 
 vim.api.nvim_create_user_command("Zeal", function(opts)
@@ -81,11 +109,11 @@ end, {
 })
 
 vim.api.nvim_create_user_command("ZealSearchFt", function(opts)
-  local query = opts.args ~= "" and opts.args or nil
+	local query = opts.args ~= "" and opts.args or nil
 	require("zeal").search_ft(query)
 end, {
-  nargs = "?",
-  desc = "Search Zeal docsets for filetype"
+	nargs = "?",
+	desc = "Search Zeal docsets for filetype",
 })
 
 vim.api.nvim_create_user_command("ZealToggle", function()
@@ -93,7 +121,15 @@ vim.api.nvim_create_user_command("ZealToggle", function()
 end, { desc = "Toggle Zeal term" })
 
 vim.api.nvim_create_user_command("ZealDownload", function()
-	require("zeal.download").download(M.config)
+	require("zeal").download()
 end, { desc = "Download Zeal docsets" })
+
+vim.api.nvim_create_user_command("ZealRemove", function()
+	require("zeal").remove()
+end, { desc = "Remove Zeal docsets" })
+
+vim.api.nvim_create_user_command("ZealManager", function()
+	require("zeal").manager()
+end, { desc = "Open Zeal docset manager" })
 
 return M
