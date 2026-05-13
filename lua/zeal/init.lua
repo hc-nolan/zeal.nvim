@@ -93,7 +93,7 @@ vim.api.nvim_create_user_command("ZealToggle", function()
 end, { desc = "Toggle Zeal term" })
 
 vim.api.nvim_create_user_command("ZealDownload", function()
-	require("zeal.download").download(M.config)
+	require("zeal.manager").download()
 end, { desc = "Download Zeal docsets" })
 
 return M

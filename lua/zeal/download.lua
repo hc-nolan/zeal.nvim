@@ -36,9 +36,9 @@ local function copy_dir(src, dest)
 	return true
 end
 
----@param cfg table
 ---@param language string
-local function download_lang(cfg, language)
+function M.download_lang(language)
+	local cfg = require("zeal").config
 	vim.notify("zeal.nvim: downloading " .. language, vim.log.levels.INFO)
 
 	local url = "https://go.zealdocs.org/d/com.kapeli/" .. language .. "/latest"
@@ -116,29 +116,18 @@ local function download_lang(cfg, language)
 	end)
 end
 
----@param cfg table
-function M.download(cfg)
+--- Fetches index of available docsets from Zeal API; noop if fetched within 24hrs
+---@param on_complete function Callback function to call on download completion
+local function fetch_index(on_complete)
 	local index_url = "https://api.zealdocs.org/v1/docsets"
 	local cache_ttl = 24 * 60 * 60 -- 24 hours
-
-	local function pick_lang()
-		local ok, index_parsed = pcall(function()
-			local raw = table.concat(vim.fn.readfile(cache_path), "\n")
-			return vim.json.decode(raw)
-		end)
-		if not ok then
-			vim.notify("zeal.nvim: parsing docset failed: " .. index_parsed, vim.log.levels.ERROR)
-			return
-		end
-		require("zeal.picker").pick_download(index_parsed, cfg, download_lang)
-	end
 
 	local cache_info = vim.uv.fs_stat(cache_path)
 	if cache_info then
 		local now = os.time()
 		local age = now - cache_info.mtime.sec
 		if age < cache_ttl then
-			pick_lang()
+			on_complete()
 			return
 		end
 	end
@@ -162,7 +151,23 @@ function M.download(cfg)
 			end)
 			return
 		end
-		vim.schedule(pick_lang)
+		on_complete()
+	end)
+end
+
+--- Fetch the latest index if needed, then read it and return JSON-parsed results
+---@param on_complete function
+function M.get_index(on_complete)
+	fetch_index(function()
+		local ok, index_parsed = pcall(function()
+			local raw = table.concat(vim.fn.readfile(cache_path), "\n")
+			return vim.json.decode(raw)
+		end)
+		if not ok then
+			vim.notify("zeal.nvim: parsing docset failed: " .. index_parsed, vim.log.levels.ERROR)
+			return
+		end
+		on_complete(index_parsed)
 	end)
 end
 
