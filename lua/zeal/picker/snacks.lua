@@ -103,19 +103,34 @@ function M.pick_manager(languages)
 	local snacks = require("snacks")
 	local mode = "download"
 
-	local legend = { text = "<CR> confirm  <Tab|Space> select  <C-t> toggle", _kind = "legend" }
+	local legend = {
+		{ "<CR> confirm  <Tab|Space> select  <C-t> toggle", "Comment" },
+	}
 
 	local function is_meta(item)
 		return item and item._kind ~= nil
 	end
 
-	local function make_header(m)
-		local label = "  Download  |  Remove  "
-		return { text = label, _kind = "header", _mode = m }
+	local function get_title(m)
+		-- to avoid whitespace being auto trimmed we need to use a special space character
+		local nbsp = "\u{00A0}"
+		if m == "download" then
+			return {
+				{ nbsp .. "Download" .. nbsp, "DiagnosticWarn" },
+				{ nbsp .. "|" .. nbsp, "Comment" },
+				{ "Remove" .. nbsp, "Comment" },
+			}
+		else
+			return {
+				{ nbsp .. "Download" .. nbsp, "Comment" },
+				{ nbsp .. "|" .. nbsp, "Comment" },
+				{ "Remove" .. nbsp, "DiagnosticWarn" },
+			}
+		end
 	end
 
 	local function make_download_items()
-		local items = { make_header("download"), legend }
+		local items = {}
 		for _, e in ipairs(languages) do
 			table.insert(items, { text = e.name, name = e.name })
 		end
@@ -123,7 +138,7 @@ function M.pick_manager(languages)
 	end
 
 	local function make_remove_items()
-		local items = { make_header("remove"), legend }
+		local items = {}
 		for _, d in ipairs(docset.list(cfg)) do
 			table.insert(items, { text = d.name, name = d.name, path = d.path })
 		end
@@ -140,18 +155,6 @@ function M.pick_manager(languages)
 	snacks.picker({
 		items = make_download_items(),
 		format = function(e)
-			if e._kind == "header" then
-				local dl_hl = e._mode == "download" and "DiagnosticWarn" or "Comment"
-				local rm_hl = e._mode == "remove" and "DiagnosticWarn" or "Comment"
-				return {
-					{ "  Download ", dl_hl },
-					{ " | ", "Comment" },
-					{ " Remove  ", rm_hl },
-				}
-			end
-			if e._kind == "legend" then
-				return { { e.text, "Comment" } }
-			end
 			return {
 				{ e.text, "SnacksPickerFile" },
 			}
@@ -169,12 +172,13 @@ function M.pick_manager(languages)
 				border = "rounded",
 				title = "{title}",
 				title_pos = "center",
+				footer = legend,
+				footer_pos = "center",
 				{ win = "input", height = 1, border = "bottom" },
-				{ win = "list", border = "none" },
+				{ win = "list", border = "top", title = get_title(mode), title_pos = "center" },
 			},
 		},
 		title = "  Zeal Manager",
-		focus = "list",
 		actions = {
 			select = function(picker, item)
 				if is_meta(item) then
@@ -219,6 +223,7 @@ function M.pick_manager(languages)
 					mode = "download"
 					picker.opts.items = make_download_items()
 				end
+				picker.list.win.meta.title_tpl = get_title(mode)
 				picker:find({ refresh = true })
 			end,
 		},
