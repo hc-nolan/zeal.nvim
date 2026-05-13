@@ -91,7 +91,9 @@ end
 
 function M.manager()
 	local picker = require("zeal.picker")
-	picker.pick_manager()
+	require("zeal.download").get_index(function(languages)
+		picker.pick_manager(languages)
+	end)
 end
 
 vim.api.nvim_create_user_command("Zeal", function(opts)

@@ -75,32 +75,37 @@ function M.pick_download(languages, callback)
 	end
 end
 
---- Remove a docset
----@param callback function|nil  Optional callback function
-function M.pick_removal(callback)
-	--- Performs the filesystem deletion of the docset
-	---@param docset table
-	local function remove(docset)
-		local ok, err = pcall(vim.fs.rm, docset.path, { recursive = true })
-		if not ok then
-			vim.notify("zeal.nvim: failed to remove " .. docset.name .. ": " .. err, vim.log.levels.ERROR)
-			return
-		end
-		vim.notify("zeal.nvim: removed " .. docset.name, vim.log.levels.INFO)
-		if callback then
-			callback()
-		end
+--- Performs the filesystem deletion of the docset
+---@param docset table
+---@param callback function?
+function M.remove_docset(docset, callback)
+	local ok, err = pcall(vim.fs.rm, docset.path, { recursive = true })
+	if not ok then
+		vim.notify("zeal.nvim: failed to remove " .. docset.name .. ": " .. err, vim.log.levels.ERROR)
+		return
 	end
-	pick_docsets(remove)
+	vim.notify("zeal.nvim: removed " .. docset.name, vim.log.levels.INFO)
+	if callback then
+		callback()
+	end
 end
 
-function M.pick_manager()
+--- Remove a docset
+---@param callback function?
+function M.pick_removal(callback)
+	pick_docsets(function(docset)
+		M.remove_docset(docset, callback)
+	end)
+end
+
+---@param languages table?
+function M.pick_manager(languages)
 	local active_picker = require("zeal").config.picker.type
 	if active_picker == "default" then
 		require("zeal.picker.default").pick_manager()
 		return
 	elseif active_picker == "snacks" then
-		require("zeal.picker.snacks").pick_manager()
+		require("zeal.picker.snacks").pick_manager(languages)
 		return
 	end
 end
