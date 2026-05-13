@@ -2,7 +2,7 @@ local M = {}
 
 M.default_config = {
 	docsets_path = vim.fn.expand("~/.local/share/Zeal/Zeal/docsets"), -- zeal docset locations
-	browser = { "w3m", '-o', 'display_image=FALSE' }, -- can be any terminal browser
+	browser = { "w3m", "-o", "display_image=FALSE" }, -- can be any terminal browser
 	split = "vsplit", -- used when use_toggleterm = false
 	use_toggleterm = false,
 	-- toggleterm specific options
@@ -81,11 +81,11 @@ end, {
 })
 
 vim.api.nvim_create_user_command("ZealSearchFt", function(opts)
-  local query = opts.args ~= "" and opts.args or nil
+	local query = opts.args ~= "" and opts.args or nil
 	require("zeal").search_ft(query)
 end, {
-  nargs = "?",
-  desc = "Search Zeal docsets for filetype"
+	nargs = "?",
+	desc = "Search Zeal docsets for filetype",
 })
 
 vim.api.nvim_create_user_command("ZealToggle", function()
@@ -96,4 +96,7 @@ vim.api.nvim_create_user_command("ZealDownload", function()
 	require("zeal.manager").download()
 end, { desc = "Download Zeal docsets" })
 
+vim.api.nvim_create_user_command("ZealRemove", function()
+	require("zeal.manager").remove()
+end, { desc = "Remove Zeal docsets" })
 return M

@@ -10,4 +10,15 @@ function M.download(callback)
 	end)
 end
 
+--- Remove a docset
+---@param callback function|nil  Optional callback function
+function M.remove(callback)
+	local cfg = require("zeal").config
+	if callback then
+		picker.pick_removal(cfg, callback)
+		return
+	end
+	picker.pick_removal(cfg)
+end
+
 return M

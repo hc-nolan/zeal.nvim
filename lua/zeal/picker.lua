@@ -183,6 +183,24 @@ function M.pick_download(languages, callback)
 	})
 end
 
+--- Remove a docset
+---@param cfg table  Config table
+---@param callback function|nil  Optional callback function
+function M.pick_removal(cfg, callback)
+	--- Performs the filesystem deletion of the docset
+	---@param docset table
+	local function remove(docset)
+		local ok, err = pcall(vim.fs.rm, docset.path, { recursive = true })
+		if not ok then
+			vim.notify("zeal.nvim: failed to remove " .. docset.name .. ": " .. err, vim.log.levels.ERROR)
+			return
+		end
+		vim.notify("zeal.nvim: removed " .. docset.name, vim.log.levels.INFO)
+		if callback then
+			callback()
+		end
+	end
+	pick_docsets(cfg, remove)
 end
 
 return M
