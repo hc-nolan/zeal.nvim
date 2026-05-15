@@ -1,6 +1,7 @@
 local browser = require("zeal.browser")
 local docset = require("zeal.docsets")
 local download = require("zeal.download")
+local preview = require("zeal.picker.preview")
 local M = {}
 
 local function binding_label(binding)
@@ -46,6 +47,22 @@ function M.entry_picker(entries, title, query)
 		table.insert(items, { text = e.display, path = e.path })
 	end
 
+	local function html_preview(ctx)
+		local path = ctx.item and ctx.item.path
+		if not path then
+			return
+		end
+		preview.render(path, cfg.browser, function(lines)
+			if not vim.api.nvim_buf_is_valid(ctx.buf) then
+				return
+			end
+			vim.api.nvim_set_option_value("modifiable", true, { buf = ctx.buf })
+			vim.api.nvim_buf_set_lines(ctx.buf, 0, -1, false, lines)
+			vim.api.nvim_set_option_value("modifiable", false, { buf = ctx.buf })
+		end)
+		return true
+	end
+
 	snacks.picker({
 		items = items,
 		format = function(e)
@@ -60,7 +77,7 @@ function M.entry_picker(entries, title, query)
 			picker:close()
 			browser.open(choice, cfg)
 		end,
-		preview = "none",
+		preview = html_preview,
 	})
 end
 
